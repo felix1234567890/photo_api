@@ -6,18 +6,21 @@ import { resolve } from 'path';
 export const createPhoto = async (
   req: Request,
   res: Response
-): Promise<Response> => {
+) => {
   const { title, description } = req.body;
   const newPhoto = {
     title,
     description,
-    photoPath: req.file.path
+    photoPath: req.file?.path
   };
   try {
     const photo = await Photo.create(newPhoto);
     return res.status(201).json({ success: true, data: photo });
   } catch (error) {
-    return res.status(400).json({ success: false, message: error.message });
+    if (error instanceof Error){
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    return error
   }
 };
 export const getPhotos = async (
@@ -45,14 +48,10 @@ export const deletePhoto = async (
   res: Response
 ): Promise<Response> => {
   const { photoId } = req.params;
-  const photo = await Photo.findById(photoId);
-  if (!photo) {
-    return res
-      .status(200)
-      .json({ success: false, data: 'No photo with given ID' });
+  const photo =  await Photo.findOneAndDelete({id: photoId});
+  if(photo?.photoPath) {
+    fs.unlink(resolve(photo.photoPath));
   }
-  fs.unlink(resolve(photo.photoPath));
-  await Photo.remove(photo);
   return res.status(200).json({ success: true, message: 'Photo deleted' });
 };
 export const updatePhoto = async (

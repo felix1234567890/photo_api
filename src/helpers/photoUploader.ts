@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
       `${Math.random()
         .toString(36)
         .replace(/[^a-z]+/g, '')
-        .substr(2, 16)}${extname(file.originalname)}`
+        .substring(2, 16)}${extname(file.originalname)}`
     );
   }
 });
